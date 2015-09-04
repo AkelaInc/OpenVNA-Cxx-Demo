@@ -351,18 +351,18 @@ VNALibrary::~VNALibrary()
 	delete d;
 }
 
-#define GET_INT(a) \
+#define GET_INT(a)                             \
     d->p_##a = (intProto) d->lib->resolve(#a); \
-    if(d->p_##a) \
-    {\
-        printf("%s: OK\n",#a); \
-        VNALibrary::a = *(d->p_##a); \
-    }\
-    else         printf("%s: FAIL\n", #a); \
+    if(d->p_##a)                               \
+    {                                          \
+        printf("%s: OK\n",#a);                 \
+        VNALibrary::a = *(d->p_##a);           \
+    }                                          \
+    else         printf("%s: FAIL\n", #a);     \
 
-#define GET_FUNC(a) \
+#define GET_FUNC(a)                            \
     d->p_##a = (a##Proto) d->lib->resolve(#a); \
-    if(d->p_##a) printf("%s: OK\n",#a); \
+    if(d->p_##a) printf("%s: OK\n",#a);        \
     else         printf("%s: FAIL\n", #a);
 
 bool VNALibrary::load(QString path)

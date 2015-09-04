@@ -330,7 +330,7 @@ ComplexData wrapArray(ComplexArray a)
 	out.Q = a.Qdata;
 	return out;
 }
-#define WRAP(a) \
+#define WRAP(a)        \
 	ComplexData cd##a; \
 	cd##a.I = a.Idata; \
 	cd##a.Q = a.Qdata;
@@ -423,12 +423,12 @@ void MainWindow::onSaveCalibration(bool)
 	}
 
 }
-#define MAKE(name,L) \
-	ComplexData name; \
-	name.I = new double[L]; \
+#define MAKE(name,L)               \
+	ComplexData name;              \
+	name.I = new double[L];        \
 	name.Q = new double[L];
 
-#define CPY(name, i) \
+#define CPY(name, i)               \
 name.I[i] = importData[i].name##i; \
 name.Q[i] = importData[i].name##q;
 
