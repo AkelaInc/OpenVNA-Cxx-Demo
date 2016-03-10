@@ -68,8 +68,8 @@ class MainWindow : public QMainWindow
 		void requestStart(QtTaskHandle t);
 		void requestStop(QtTaskHandle t);
 		void requestUtilPingUnit(QtTaskHandle t);
-		void requestMeasureUncalibrated(QtTaskHandle t, QtRFPath paths, QtComplexData T1R1, QtComplexData T1R2, QtComplexData T2R1, QtComplexData T2R2, QtComplexData Ref);
-		void requestMeasure2PortCalibrated(QtTaskHandle t, QtSParameter paths, QtComplexData S11, QtComplexData S21, QtComplexData S12, QtComplexData S22);
+        void requestMeasureUncalibrated(QtTaskHandle t, QtComplexData T1R1, QtComplexData T1R2, QtComplexData T2R1, QtComplexData T2R2, QtComplexData Ref);
+		void requestMeasure2PortCalibrated(QtTaskHandle t, QtComplexData S11, QtComplexData S21, QtComplexData S12, QtComplexData S22);
 		void requestMeasureCalibrationStep(QtTaskHandle t, QtCalibrationStep step);
 		void requestImportCalibrationAsync(QtTaskHandle t,const double* freqs, const unsigned int N,
 		                                   const QtComplexData e00,		/* EDF */

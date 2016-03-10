@@ -45,7 +45,7 @@
             <number>254</number>
            </property>
            <property name="value">
-            <number>192</number>
+            <number>223</number>
            </property>
           </widget>
          </item>
@@ -420,8 +420,17 @@
          </item>
          <item row="3" column="0" colspan="3">
           <widget class="QGroupBox" name="groupBox_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="title">
             <string>Offset Open Compensation</string>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
             <item row="0" column="0">

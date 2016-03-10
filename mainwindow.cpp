@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QLibrary>
@@ -60,8 +62,6 @@ void MainWindow::registerTypes()
 	// I can't pass custom types through the signals/slots
 	// mechanism unless those types are registered with Qt
 	qRegisterMetaType<QtErrCode>();
-	qRegisterMetaType<QtRFPath>();
-	qRegisterMetaType<QtSParameter>();
 	qRegisterMetaType<QtCalibrationStep>();
 	qRegisterMetaType<QtTaskHandle>();
 	qRegisterMetaType<QtComplexData>();
@@ -155,10 +155,10 @@ void MainWindow::setupSignalsAndSlots()
 	connect(this, SIGNAL(requestStart(QtTaskHandle)), &lib, SLOT(startAsync(QtTaskHandle)));
 	connect(this, SIGNAL(requestStop(QtTaskHandle)), &lib, SLOT(stopAsync(QtTaskHandle)));
 	connect(this, SIGNAL(requestUtilPingUnit(QtTaskHandle)), &lib, SLOT(utilPingUnitAsync(QtTaskHandle)));
-	connect(this, SIGNAL(requestMeasureUncalibrated(QtTaskHandle,QtRFPath,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData)),
-			&lib, SLOT(measureUncalibratedAsync(QtTaskHandle, QtRFPath, QtComplexData, QtComplexData, QtComplexData, QtComplexData, QtComplexData)));
-	connect(this, SIGNAL(requestMeasure2PortCalibrated(QtTaskHandle,QtSParameter,QtComplexData,QtComplexData,QtComplexData,QtComplexData)),
-			&lib, SLOT(measure2PortCalibratedAsync(QtTaskHandle, QtSParameter, QtComplexData, QtComplexData, QtComplexData, QtComplexData)));
+	connect(this, SIGNAL(requestMeasureUncalibrated(QtTaskHandle,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData)),
+			&lib, SLOT(measureUncalibratedAsync(QtTaskHandle, QtComplexData, QtComplexData, QtComplexData, QtComplexData, QtComplexData)));
+	connect(this, SIGNAL(requestMeasure2PortCalibrated(QtTaskHandle,QtComplexData,QtComplexData,QtComplexData,QtComplexData)),
+			&lib, SLOT(measure2PortCalibratedAsync(QtTaskHandle, QtComplexData, QtComplexData, QtComplexData, QtComplexData)));
 	connect(this, SIGNAL(requestMeasureCalibrationStep(QtTaskHandle,QtCalibrationStep)),
 			&lib, SLOT(measureCalibrationStepAsync(QtTaskHandle, QtCalibrationStep)));
 	connect(this, SIGNAL(requestImportCalibrationAsync(QtTaskHandle,const double*,uint,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData)),
@@ -166,7 +166,7 @@ void MainWindow::setupSignalsAndSlots()
 
 	// VNALibrary to MainWindow
 	connect(&lib, SIGNAL(loadFinished(bool)), this, SLOT(onLoadFinished(bool)));
-	connect(&lib, SIGNAL(initializeProgress(int,Qtvoidptr)), this, SLOT(onInitializeProgress(int,Qtvoidptr)));
+	//connect(&lib, SIGNAL(initializeProgress(int,Qtvoidptr)), this, SLOT(onInitializeProgress(int,Qtvoidptr)));
 	connect(&lib, SIGNAL(initializeFinished(QtErrCode)), this, SLOT(onInitializeFinished(QtErrCode)));
 	connect(&lib, SIGNAL(startFinished(QtErrCode)), this, SLOT(onStartFinished(QtErrCode)));
 	connect(&lib, SIGNAL(stopFinished(QtErrCode)), this, SLOT(onStopFinished(QtErrCode)));
@@ -204,13 +204,16 @@ void MainWindow::loadVNADLL()
 
 void MainWindow::onInitializeProgress(int percent, Qtvoidptr user)
 {
-	if(waitDialog)
+	if(waitDialog != NULL)
 	{
+		std::cout << "calling waitDialog->setValue()" << std::endl;
 		waitDialog->setValue(percent);
+		std::cout << "waitDialog->setValue() called" << std::endl;
+
 		if(percent == 100)
 		{
 			delete waitDialog;
-			waitDialog = 0;
+			waitDialog = NULL;
 		}
 	}
 }
@@ -335,7 +338,7 @@ ComplexData wrapArray(ComplexArray a)
 	cd##a.I = a.Idata; \
 	cd##a.Q = a.Qdata;
 
-#define UNWRAP(a) cd##a.I = 0; cd##a.Q = 0;
+#define UNWRAP(a) cd##a.I = NULL; cd##a.Q = NULL;
 
 void MainWindow::onSaveCalibration(bool)
 {
@@ -416,7 +419,7 @@ void MainWindow::onSaveCalibration(bool)
 						EXR.Idata[i], EXR.Qdata[i],
 						ELR.Idata[i], ELR.Qdata[i],
 						ETR.Idata[i], ETR.Qdata[i]
-					   );
+					);
 			fclose(file);
 			statusBar()->showMessage(QString("Wrote ")+filename, 1000);
 		}
@@ -745,8 +748,7 @@ void MainWindow::measureAgain()
 		if(setting == 0)
 		{
 			// calibration off: measure raw data
-			QtRFPath path = QtRFPath(lib.PATH_T1R1 | lib.PATH_T1R2 | lib.PATH_T2R1 | lib.PATH_T2R2 | lib.PATH_REF);
-			emit requestMeasureUncalibrated(QtTaskHandle(task), path,
+			emit requestMeasureUncalibrated(QtTaskHandle(task),
 											QtComplexData(buf1), QtComplexData(buf2),
 											QtComplexData(buf3), QtComplexData(buf4),
 											QtComplexData(buf5));
@@ -754,8 +756,7 @@ void MainWindow::measureAgain()
 		else
 		{
 			// calibrated data
-			QtSParameter paths = QtSParameter(lib.PARAM_S11 | lib.PARAM_S21 | lib.PARAM_S12 | lib.PARAM_S22);
-			emit requestMeasure2PortCalibrated(QtTaskHandle(task), paths,
+			emit requestMeasure2PortCalibrated(QtTaskHandle(task),
 											   QtComplexData(buf1), QtComplexData(buf2),
 											   QtComplexData(buf3), QtComplexData(buf4));
 		}
@@ -935,7 +936,8 @@ void MainWindow::onApplyOffsetLength(bool)
 	{
 		phases[i] = 2*M_PI*f[i]*L/c;
 	}
-	ErrCode code = lib.setOpenPhaseCorrection(task, phases);
+//	ErrCode code = lib.setOpenPhaseCorrection(task, phases);
+	ErrCode code = lib.ERR_OK;
 	delete [] phases;
 
 	if(code != lib.ERR_OK)
@@ -961,7 +963,9 @@ void MainWindow::onCalTypeChanged(int index)
 	else if(index == 1)
 	{
 		if(lib.hasFactoryCalibration(task))
+		{
 			lib.importFactoryCalibration(task);
+		}
 		else
 		{
 			QMessageBox box;

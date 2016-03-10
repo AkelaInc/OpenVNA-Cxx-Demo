@@ -1,7 +1,7 @@
 #ifndef WRAPPERCLASSES_H
 #define WRAPPERCLASSES_H
 
-#include "../vnadll/akela_vna_dll.h"
+#include "../../../vnadll/akela_vna_dll.h"
 #include <QObject>
 
 /*
@@ -28,7 +28,6 @@ Q_DECLARE_METATYPE(Qt##name)
 
 
 WRAPPER_CLASS(ErrCode)
-WRAPPER_CLASS(RFPath)
 WRAPPER_CLASS(SParameter)
 WRAPPER_CLASS(CalibrationStep)
 WRAPPER_CLASS(TaskHandle)

@@ -6,7 +6,7 @@
  * and exposes them to the caller.
 */
 
-#include "../vnadll/akela_vna_dll.h"
+#include "../../../vnadll/akela_vna_dll.h"
 #include <QObject>
 #include <QString>
 #include "wrapperclasses.h"
@@ -25,10 +25,10 @@ class VNALibrary : public QObject
 		void startAsync(QtTaskHandle t);
 		void stopAsync(QtTaskHandle t);
 		void utilPingUnitAsync(QtTaskHandle t);
-		void measureUncalibratedAsync(QtTaskHandle t, QtRFPath paths, QtComplexData T1R1, QtComplexData T1R2,
+        void measureUncalibratedAsync(QtTaskHandle t, QtComplexData T1R1, QtComplexData T1R2,
 		                              QtComplexData T2R1, QtComplexData T2R2,
 		                              QtComplexData Ref);
-		void measure2PortCalibratedAsync(QtTaskHandle t, QtSParameter paths,
+		void measure2PortCalibratedAsync(QtTaskHandle t,
 		                                 QtComplexData S11, QtComplexData S21,
 		                                 QtComplexData S12, QtComplexData S22);
 		void measureCalibrationStepAsync(QtTaskHandle t, QtCalibrationStep step);
@@ -191,10 +191,10 @@ class VNALibrary : public QObject
 		ErrCode utilFixLinearSweepLimits(TaskHandle t, double& startFreq, double& endFreq, const unsigned int N);
 		ErrCode utilPingUnit(TaskHandle t);
 		ErrCode utilGenerateLinearSweep(TaskHandle t, const double startFreq, const double endFreq, const unsigned int N);
-		ErrCode measureUncalibrated(TaskHandle t, RFPath paths, ComplexData T1R1, ComplexData T1R2,
+        ErrCode measureUncalibrated(TaskHandle t, ComplexData T1R1, ComplexData T1R2,
 		                            ComplexData T2R1, ComplexData T2R2,
 		                            ComplexData Ref);
-		ErrCode measure2PortCalibrated(TaskHandle t, SParameter paths,
+		ErrCode measure2PortCalibrated(TaskHandle t,
 		                               ComplexData S11, ComplexData S21,
 		                               ComplexData S12, ComplexData S22);
 		ErrCode measureCalibrationStep(TaskHandle t, CalibrationStep step);
@@ -239,7 +239,7 @@ class VNALibrary : public QObject
 
 		bool hasFactoryCalibration(TaskHandle t);
 		ErrCode importFactoryCalibration(TaskHandle t);
-		ErrCode setOpenPhaseCorrection(TaskHandle t, const double* const phaseCorrections);
+//		ErrCode setOpenPhaseCorrection(TaskHandle t, const double* const phaseCorrections);
 
 
 		bool callback(int percent, void* user);

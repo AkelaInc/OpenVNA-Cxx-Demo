@@ -31,12 +31,11 @@ typedef ErrCode (*utilNearestLegalFreqProto)(TaskHandle t, double& freq);
 typedef ErrCode (*utilFixLinearSweepLimitsProto)(TaskHandle t, double& startFreq, double& endFreq, const unsigned int N);
 typedef ErrCode (*utilPingUnitProto)(TaskHandle t);
 typedef ErrCode (*utilGenerateLinearSweepProto)(TaskHandle t, const double startFreq, const double endFreq, const unsigned int N);
-typedef ErrCode (*measureUncalibratedProto)(TaskHandle t, RFPath paths, ComplexData T1R1, ComplexData T1R2,
-        ComplexData T2R1, ComplexData T2R2,
-        ComplexData Ref);
-typedef ErrCode (*measure2PortCalibratedProto)(TaskHandle t, SParameter paths,
-        ComplexData S11, ComplexData S21,
-        ComplexData S12, ComplexData S22);
+typedef ErrCode (*measureUncalibratedProto)(TaskHandle t, ComplexData T1R1, ComplexData T1R2,
+		ComplexData T2R1, ComplexData T2R2,
+		ComplexData Ref);
+typedef ErrCode (*measure2PortCalibratedProto)(TaskHandle t, 		ComplexData S11, ComplexData S21,
+		ComplexData S12, ComplexData S22);
 typedef ErrCode (*measureCalibrationStepProto)(TaskHandle t, CalibrationStep step);
 typedef bool (*haveCalP1OpenProto)(TaskHandle t);
 typedef bool (*haveCalP1ShortProto)(TaskHandle t);
@@ -51,34 +50,34 @@ typedef bool (*isCalibrationCompleteProto)(TaskHandle t);
 typedef unsigned int (*getCalibrationNumberOfFrequenciesProto)(TaskHandle t);
 typedef const double* (*getCalibrationFrequenciesProto)(TaskHandle t);
 typedef ErrCode (*exportCalibrationProto)(TaskHandle t,
-        ComplexData e00,		/* EDF */
-        ComplexData e11,		/* ESF */
-        ComplexData e10e01,		/* ERF */
-        ComplexData e30,		/* EXF */
-        ComplexData e22,		/* ELF */
-        ComplexData e10e32,		/* ETF */
-        ComplexData ep33,		/* EDR */
-        ComplexData ep22,		/* ESR */
-        ComplexData ep23ep32,	/* ERR */
-        ComplexData ep03,		/* EXR */
-        ComplexData ep11,		/* ELR */
-        ComplexData ep23ep01	/* ETR */);
+		ComplexData e00,		/* EDF */
+		ComplexData e11,		/* ESF */
+		ComplexData e10e01,		/* ERF */
+		ComplexData e30,		/* EXF */
+		ComplexData e22,		/* ELF */
+		ComplexData e10e32,		/* ETF */
+		ComplexData ep33,		/* EDR */
+		ComplexData ep22,		/* ESR */
+		ComplexData ep23ep32,	/* ERR */
+		ComplexData ep03,		/* EXR */
+		ComplexData ep11,		/* ELR */
+		ComplexData ep23ep01	/* ETR */);
 typedef ErrCode (*importCalibrationProto)(TaskHandle t, const double* freqs, const unsigned int N,
-        const ComplexData e00,		/* EDF */
-        const ComplexData e11,		/* ESF */
-        const ComplexData e10e01,	/* ERF */
-        const ComplexData e30,		/* EXF */
-        const ComplexData e22,		/* ELF */
-        const ComplexData e10e32,	/* ETF */
-        const ComplexData ep33,		/* EDR */
-        const ComplexData ep22,		/* ESR */
-        const ComplexData ep23ep32,	/* ERR */
-        const ComplexData ep03,		/* EXR */
-        const ComplexData ep11,		/* ELR */
-        const ComplexData ep23ep01	/* ETR */);
+		const ComplexData e00,		/* EDF */
+		const ComplexData e11,		/* ESF */
+		const ComplexData e10e01,	/* ERF */
+		const ComplexData e30,		/* EXF */
+		const ComplexData e22,		/* ELF */
+		const ComplexData e10e32,	/* ETF */
+		const ComplexData ep33,		/* EDR */
+		const ComplexData ep22,		/* ESR */
+		const ComplexData ep23ep32,	/* ERR */
+		const ComplexData ep03,		/* EXR */
+		const ComplexData ep11,		/* ELR */
+		const ComplexData ep23ep01	/* ETR */);
 typedef bool (*hasFactoryCalibrationProto)(TaskHandle t);
 typedef ErrCode (*importFactoryCalibrationProto)(TaskHandle t);
-typedef ErrCode (*setOpenPhaseCorrectionProto)(TaskHandle t, const double* const phaseCorrections);
+//typedef ErrCode (*setOpenPhaseCorrectionProto)(TaskHandle t, const double* const phaseCorrections);
 
 class PrivateData
 {
@@ -224,7 +223,7 @@ class PrivateData
 		importCalibrationProto p_importCalibration;
 		hasFactoryCalibrationProto p_hasFactoryCalibration;
 		importFactoryCalibrationProto p_importFactoryCalibration;
-		setOpenPhaseCorrectionProto p_setOpenPhaseCorrection;
+//		setOpenPhaseCorrectionProto p_setOpenPhaseCorrection;
 
 		PrivateData() : loaded(false),ok(false), lib(0)
 		{}
@@ -290,22 +289,23 @@ void VNALibrary::utilPingUnitAsync(QtTaskHandle t)
 	emit utilPingUnitFinished(QtErrCode(result));
 }
 
-void VNALibrary::measureUncalibratedAsync(QtTaskHandle t, QtRFPath paths, QtComplexData T1R1, QtComplexData T1R2, QtComplexData T2R1, QtComplexData T2R2, QtComplexData Ref)
+void VNALibrary::measureUncalibratedAsync(QtTaskHandle t, QtComplexData T1R1, QtComplexData T1R2, QtComplexData T2R1, QtComplexData T2R2, QtComplexData Ref)
 {
 	QTime timer;
 	timer.start();
-	ErrCode result = measureUncalibrated(t.val, paths.val, T1R1.val, T1R2.val, T2R1.val, T2R2.val, Ref.val);
+
+	ErrCode result = measureUncalibrated(t.val, T1R1.val, T1R2.val, T2R1.val, T2R2.val, Ref.val);
 
 	QtErrCode out = QtErrCode(result);
 	out.time = timer.elapsed();
 	emit measureUncalibratedFinished(out);
 }
 
-void VNALibrary::measure2PortCalibratedAsync(QtTaskHandle t, QtSParameter paths, QtComplexData S11, QtComplexData S21, QtComplexData S12, QtComplexData S22)
+void VNALibrary::measure2PortCalibratedAsync(QtTaskHandle t, QtComplexData S11, QtComplexData S21, QtComplexData S12, QtComplexData S22)
 {
 	QTime timer;
 	timer.start();
-	ErrCode result = measure2PortCalibrated(t.val, paths.val, S11.val, S21.val, S12.val, S22.val);
+	ErrCode result = measure2PortCalibrated(t.val, S11.val, S21.val, S12.val, S22.val);
 
 	QtErrCode out = QtErrCode(result);
 	out.time = timer.elapsed();
@@ -319,23 +319,23 @@ void VNALibrary::measureCalibrationStepAsync(QtTaskHandle t, QtCalibrationStep s
 }
 
 void VNALibrary::importCalibrationAsync(QtTaskHandle t, const double* freqs, const unsigned int N,
-                                        const QtComplexData e00,		/* EDF */
-                                        const QtComplexData e11,		/* ESF */
-                                        const QtComplexData e10e01,	/* ERF */
-                                        const QtComplexData e30,		/* EXF */
-                                        const QtComplexData e22,		/* ELF */
-                                        const QtComplexData e10e32,	/* ETF */
-                                        const QtComplexData ep33,		/* EDR */
-                                        const QtComplexData ep22,		/* ESR */
-                                        const QtComplexData ep23ep32,	/* ERR */
-                                        const QtComplexData ep03,		/* EXR */
-                                        const QtComplexData ep11,		/* ELR */
-                                        const QtComplexData ep23ep01	/* ETR */)
+										const QtComplexData e00,		/* EDF */
+										const QtComplexData e11,		/* ESF */
+										const QtComplexData e10e01,	/* ERF */
+										const QtComplexData e30,		/* EXF */
+										const QtComplexData e22,		/* ELF */
+										const QtComplexData e10e32,	/* ETF */
+										const QtComplexData ep33,		/* EDR */
+										const QtComplexData ep22,		/* ESR */
+										const QtComplexData ep23ep32,	/* ERR */
+										const QtComplexData ep03,		/* EXR */
+										const QtComplexData ep11,		/* ELR */
+										const QtComplexData ep23ep01	/* ETR */)
 {
 	ErrCode result = importCalibration(t.val, freqs, N, e00.val, e11.val, e10e01.val,
-	                                   e30.val, e22.val, e10e32.val, ep33.val,
-	                                   ep22.val, ep23ep32.val, ep03.val,
-	                                   ep11.val, ep23ep01.val);
+									   e30.val, e22.val, e10e32.val, ep33.val,
+									   ep22.val, ep23ep32.val, ep03.val,
+									   ep11.val, ep23ep01.val);
 	emit importCalibrationFinished(QtErrCode(result));
 }
 
@@ -352,18 +352,18 @@ VNALibrary::~VNALibrary()
 }
 
 #define GET_INT(a)                             \
-    d->p_##a = (intProto) d->lib->resolve(#a); \
-    if(d->p_##a)                               \
-    {                                          \
-        printf("%s: OK\n",#a);                 \
-        VNALibrary::a = *(d->p_##a);           \
-    }                                          \
-    else         printf("%s: FAIL\n", #a);     \
+	d->p_##a = (intProto) d->lib->resolve(#a); \
+	if(d->p_##a)                               \
+	{                                          \
+		printf("%s: OK\n",#a);                 \
+		VNALibrary::a = *(d->p_##a);           \
+	}                                          \
+	else         printf("%s: FAIL\n", #a);     \
 
 #define GET_FUNC(a)                            \
-    d->p_##a = (a##Proto) d->lib->resolve(#a); \
-    if(d->p_##a) printf("%s: OK\n",#a);        \
-    else         printf("%s: FAIL\n", #a);
+	d->p_##a = (a##Proto) d->lib->resolve(#a); \
+	if(d->p_##a) printf("%s: OK\n",#a);        \
+	else         printf("%s: FAIL\n", #a);
 
 bool VNALibrary::load(QString path)
 {
@@ -518,55 +518,55 @@ bool VNALibrary::load(QString path)
 	GET_FUNC(importCalibration);
 	GET_FUNC(hasFactoryCalibration);
 	GET_FUNC(importFactoryCalibration);
-	GET_FUNC(setOpenPhaseCorrection);
+//	GET_FUNC(setOpenPhaseCorrection);
 
 	d->loaded = true;
 
 	d->ok = d->p_versionString
-	        && d->p_createTask
-	        && d->p_deleteTask
-	        && d->p_initialize
-	        && d->p_start
-	        && d->p_stop
-	        && d->p_setIPAddress
-	        && d->p_setIPPort
-	        && d->p_setTimeout
-	        && d->p_setHopRate
-	        && d->p_setAttenuation
-	        && d->p_setFrequencies
-	        && d->p_getState
-	        && d->p_getTimeout
-	        && d->p_getIPAddress
-	        && d->p_getIPPort
-	        && d->p_getHopRate
-	        && d->p_getAttenuation
-	        && d->p_getNumberOfFrequencies
-	        && d->p_getFrequencies
-	        && d->p_getHardwareDetails
-	        && d->p_utilNearestLegalFreq
-	        && d->p_utilFixLinearSweepLimits
-	        && d->p_utilPingUnit
-	        && d->p_utilGenerateLinearSweep
-	        && d->p_measureUncalibrated
-	        && d->p_measure2PortCalibrated
-	        && d->p_measureCalibrationStep
-	        && d->p_haveCalP1Open
-	        && d->p_haveCalP1Short
-	        && d->p_haveCalP1Load
-	        && d->p_haveCalP2Open
-	        && d->p_haveCalP2Short
-	        && d->p_haveCalP2Load
-	        && d->p_haveCalThru
-	        && d->p_interruptMeasurement
-	        && d->p_clearCalibration
-	        && d->p_isCalibrationComplete
-	        && d->p_getCalibrationNumberOfFrequencies
-	        && d->p_getCalibrationFrequencies
-	        && d->p_exportCalibration
-	        && d->p_importCalibration
-	        && d->p_hasFactoryCalibration
-	        && d->p_importFactoryCalibration
-	        && d->p_setOpenPhaseCorrection;
+			&& d->p_createTask
+			&& d->p_deleteTask
+			&& d->p_initialize
+			&& d->p_start
+			&& d->p_stop
+			&& d->p_setIPAddress
+			&& d->p_setIPPort
+			&& d->p_setTimeout
+			&& d->p_setHopRate
+			&& d->p_setAttenuation
+			&& d->p_setFrequencies
+			&& d->p_getState
+			&& d->p_getTimeout
+			&& d->p_getIPAddress
+			&& d->p_getIPPort
+			&& d->p_getHopRate
+			&& d->p_getAttenuation
+			&& d->p_getNumberOfFrequencies
+			&& d->p_getFrequencies
+			&& d->p_getHardwareDetails
+			&& d->p_utilNearestLegalFreq
+			&& d->p_utilFixLinearSweepLimits
+			&& d->p_utilPingUnit
+			&& d->p_utilGenerateLinearSweep
+			&& d->p_measureUncalibrated
+			&& d->p_measure2PortCalibrated
+			&& d->p_measureCalibrationStep
+			&& d->p_haveCalP1Open
+			&& d->p_haveCalP1Short
+			&& d->p_haveCalP1Load
+			&& d->p_haveCalP2Open
+			&& d->p_haveCalP2Short
+			&& d->p_haveCalP2Load
+			&& d->p_haveCalThru
+			&& d->p_interruptMeasurement
+			&& d->p_clearCalibration
+			&& d->p_isCalibrationComplete
+			&& d->p_getCalibrationNumberOfFrequencies
+			&& d->p_getCalibrationFrequencies
+			&& d->p_exportCalibration
+			&& d->p_importCalibration
+			&& d->p_hasFactoryCalibration
+			&& d->p_importFactoryCalibration;
+//			&& d->p_setOpenPhaseCorrection;
 
 	return d->ok;
 }
@@ -611,13 +611,15 @@ QString VNALibrary::ErrToString(int code)
 
 const char *VNALibrary::versionString()
 {
-	if(d->p_versionString) return d->p_versionString();
+	if(d->p_versionString)
+		return d->p_versionString();
 	else return "";
 }
 
 TaskHandle VNALibrary::createTask()
 {
-	if(d->p_createTask) return d->p_createTask();
+	if(d->p_createTask)
+		return d->p_createTask();
 	else return 0;
 }
 
@@ -628,223 +630,260 @@ void VNALibrary::deleteTask(TaskHandle t)
 
 ErrCode VNALibrary::initialize(TaskHandle t, progress_callback callback, void *user)
 {
-	if(d->p_initialize) return d->p_initialize(t, callback, user);
+	if(d->p_initialize)
+		return d->p_initialize(t, callback, user);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::start(TaskHandle t)
 {
-	if(d->p_start) return d->p_start(t);
+	if(d->p_start)
+		return d->p_start(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::stop(TaskHandle t)
 {
-	if(d->p_stop) return d->p_stop(t);
+	if(d->p_stop)
+		return d->p_stop(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::setIPAddress(TaskHandle t, const char *ipv4)
 {
-	if(d->p_setIPAddress) return d->p_setIPAddress(t, ipv4);
+	if(d->p_setIPAddress)
+		return d->p_setIPAddress(t, ipv4);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::setIPPort(TaskHandle t, const int port)
 {
-	if(d->p_setIPPort) return d->p_setIPPort(t, port);
+	if(d->p_setIPPort)
+		return d->p_setIPPort(t, port);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::setTimeout(TaskHandle t, const unsigned int timeout)
 {
-	if(d->p_setTimeout) return d->p_setTimeout(t, timeout);
+	if(d->p_setTimeout)
+		return d->p_setTimeout(t, timeout);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::setHopRate(TaskHandle t, const HopRate rate)
 {
-	if(d->p_setHopRate) return d->p_setHopRate(t, rate);
+	if(d->p_setHopRate)
+		return d->p_setHopRate(t, rate);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::setAttenuation(TaskHandle t, const Attenuation atten)
 {
-	if(d->p_setAttenuation) return d->p_setAttenuation(t, atten);
+	if(d->p_setAttenuation)
+		return d->p_setAttenuation(t, atten);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::setFrequencies(TaskHandle t, const double *freqs, const unsigned int N)
 {
-	if(d->p_setFrequencies) return d->p_setFrequencies(t, freqs, N);
+	if(d->p_setFrequencies)
+		return d->p_setFrequencies(t, freqs, N);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 TaskState VNALibrary::getState(TaskHandle t)
 {
-	if(d->p_getState) return d->p_getState(t);
+	if(d->p_getState)
+		return d->p_getState(t);
 	else return VNALibrary::TASK_UNINITIALIZED;
 }
 
 unsigned int VNALibrary::getTimeout(TaskHandle t)
 {
-	if(d->p_getTimeout) return d->p_getTimeout(t);
+	if(d->p_getTimeout)
+		return d->p_getTimeout(t);
 	else return 0;
 }
 
 const char *VNALibrary::getIPAddress(TaskHandle t)
 {
-	if(d->p_getIPAddress) return d->p_getIPAddress(t);
+	if(d->p_getIPAddress)
+		return d->p_getIPAddress(t);
 	else return "";
 }
 
 int VNALibrary::getIPPort(TaskHandle t)
 {
-	if(d->p_getIPPort) return d->p_getIPPort(t);
+	if(d->p_getIPPort)
+		return d->p_getIPPort(t);
 	else return 0;
 }
 
 HopRate VNALibrary::getHopRate(TaskHandle t)
 {
-	if(d->p_getHopRate) return d->p_getHopRate(t);
+	if(d->p_getHopRate)
+		return d->p_getHopRate(t);
 	else return VNALibrary::HOP_UNDEFINED;
 }
 
 Attenuation VNALibrary::getAttenuation(TaskHandle t)
 {
-	if(d->p_getAttenuation) return d->p_getAttenuation(t);
+	if(d->p_getAttenuation)
+		return d->p_getAttenuation(t);
 	else return VNALibrary::ATTEN_UNDEFINED;
 }
 
 unsigned int VNALibrary::getNumberOfFrequencies(TaskHandle t)
 {
-	if(d->p_getNumberOfFrequencies) return d->p_getNumberOfFrequencies(t);
+	if(d->p_getNumberOfFrequencies)
+		return d->p_getNumberOfFrequencies(t);
 	else return 0;
 }
 
 const double *VNALibrary::getFrequencies(TaskHandle t)
 {
-	if(d->p_getFrequencies) return d->p_getFrequencies(t);
+	if(d->p_getFrequencies)
+		return d->p_getFrequencies(t);
 	else return 0;
 }
 
 HardwareDetails VNALibrary::getHardwareDetails(TaskHandle t)
 {
 	HardwareDetails h;
-	if(d->p_getHardwareDetails) return d->p_getHardwareDetails(t);
+	if(d->p_getHardwareDetails)
+		return d->p_getHardwareDetails(t);
 	else return h;
 }
 
 ErrCode VNALibrary::utilNearestLegalFreq(TaskHandle t, double &freq)
 {
-	if(d->p_utilNearestLegalFreq) return d->p_utilNearestLegalFreq(t, freq);
+	if(d->p_utilNearestLegalFreq)
+		return d->p_utilNearestLegalFreq(t, freq);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::utilFixLinearSweepLimits(TaskHandle t, double &startFreq, double &endFreq, const unsigned int N)
 {
-	if(d->p_utilFixLinearSweepLimits) return d->p_utilFixLinearSweepLimits(t, startFreq, endFreq, N);
+	if(d->p_utilFixLinearSweepLimits)
+		return d->p_utilFixLinearSweepLimits(t, startFreq, endFreq, N);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::utilPingUnit(TaskHandle t)
 {
-	if(d->p_utilPingUnit) return d->p_utilPingUnit(t);
+	if(d->p_utilPingUnit)
+		return d->p_utilPingUnit(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::utilGenerateLinearSweep(TaskHandle t, const double startFreq, const double endFreq, const unsigned int N)
 {
-	if(d->p_utilGenerateLinearSweep) return d->p_utilGenerateLinearSweep(t, startFreq, endFreq, N);
+	if(d->p_utilGenerateLinearSweep)
+		return d->p_utilGenerateLinearSweep(t, startFreq, endFreq, N);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
-ErrCode VNALibrary::measureUncalibrated(TaskHandle t, RFPath paths, ComplexData T1R1, ComplexData T1R2, ComplexData T2R1, ComplexData T2R2, ComplexData Ref)
+ErrCode VNALibrary::measureUncalibrated(TaskHandle t, ComplexData T1R1, ComplexData T1R2, ComplexData T2R1, ComplexData T2R2, ComplexData Ref)
 {
-	if(d->p_measureUncalibrated) return d->p_measureUncalibrated(t, paths, T1R1, T1R2, T2R1, T2R2, Ref);
+	if(d->p_measureUncalibrated)
+		return d->p_measureUncalibrated(t, T1R1, T1R2, T2R1, T2R2, Ref);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
-ErrCode VNALibrary::measure2PortCalibrated(TaskHandle t, SParameter paths, ComplexData S11, ComplexData S21, ComplexData S12, ComplexData S22)
+ErrCode VNALibrary::measure2PortCalibrated(TaskHandle t, ComplexData S11, ComplexData S21, ComplexData S12, ComplexData S22)
 {
-	if(d->p_measure2PortCalibrated) return d->p_measure2PortCalibrated(t, paths, S11, S21, S12, S22);
+	if(d->p_measure2PortCalibrated)
+		return d->p_measure2PortCalibrated(t, S11, S21, S12, S22);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::measureCalibrationStep(TaskHandle t, CalibrationStep step)
 {
-	if(d->p_measureCalibrationStep) return d->p_measureCalibrationStep(t, step);
+	if(d->p_measureCalibrationStep)
+		return d->p_measureCalibrationStep(t, step);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 bool VNALibrary::haveCalP1Open(TaskHandle t)
 {
-	if(d->p_haveCalP1Open) return d->p_haveCalP1Open(t);
+	if(d->p_haveCalP1Open)
+		return d->p_haveCalP1Open(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::haveCalP1Short(TaskHandle t)
 {
-	if(d->p_haveCalP1Short) return d->p_haveCalP1Short(t);
+	if(d->p_haveCalP1Short)
+		return d->p_haveCalP1Short(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::haveCalP1Load(TaskHandle t)
 {
-	if(d->p_haveCalP1Load) return d->p_haveCalP1Load(t);
+	if(d->p_haveCalP1Load)
+		return d->p_haveCalP1Load(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::haveCalP2Open(TaskHandle t)
 {
-	if(d->p_haveCalP2Open) return d->p_haveCalP2Open(t);
+	if(d->p_haveCalP2Open)
+		return d->p_haveCalP2Open(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::haveCalP2Short(TaskHandle t)
 {
-	if(d->p_haveCalP2Short) return d->p_haveCalP2Short(t);
+	if(d->p_haveCalP2Short)
+		return d->p_haveCalP2Short(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::haveCalP2Load(TaskHandle t)
 {
-	if(d->p_haveCalP2Load) return d->p_haveCalP2Load(t);
+	if(d->p_haveCalP2Load)
+		return d->p_haveCalP2Load(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::haveCalThru(TaskHandle t)
 {
-	if(d->p_haveCalThru) return d->p_haveCalThru(t);
+	if(d->p_haveCalThru)
+		return d->p_haveCalThru(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::interruptMeasurement(TaskHandle t)
 {
-	if(d->p_interruptMeasurement) return d->p_interruptMeasurement(t);
+	if(d->p_interruptMeasurement)
+		return d->p_interruptMeasurement(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 ErrCode VNALibrary::clearCalibration(TaskHandle t)
 {
-	if(d->p_clearCalibration) return d->p_clearCalibration(t);
+	if(d->p_clearCalibration)
+		return d->p_clearCalibration(t);
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
 bool VNALibrary::isCalibrationComplete(TaskHandle t)
 {
-	if(d->p_isCalibrationComplete) return d->p_isCalibrationComplete(t);
+	if(d->p_isCalibrationComplete)
+		return d->p_isCalibrationComplete(t);
 	else return false;
 }
 
 unsigned int VNALibrary::getCalibrationNumberOfFrequencies(TaskHandle t)
 {
-	if(d->p_getCalibrationNumberOfFrequencies) return d->p_getCalibrationNumberOfFrequencies(t);
+	if(d->p_getCalibrationNumberOfFrequencies)
+		return d->p_getCalibrationNumberOfFrequencies(t);
 	else return 0;
 }
 
 const double *VNALibrary::getCalibrationFrequencies(TaskHandle t)
 {
-	if(d->p_getCalibrationFrequencies) return d->p_getCalibrationFrequencies(t);
+	if(d->p_getCalibrationFrequencies)
+		return d->p_getCalibrationFrequencies(t);
 	else return 0;
 }
 
@@ -876,9 +915,9 @@ ErrCode VNALibrary::importFactoryCalibration(TaskHandle t)
 	else return VNALibrary::ERR_BAD_HANDLE;
 }
 
-ErrCode VNALibrary::setOpenPhaseCorrection(TaskHandle t, const double* const phaseCorrections)
-{
-	if(d->p_setOpenPhaseCorrection)
-		return d->p_setOpenPhaseCorrection(t, phaseCorrections);
-	else return VNALibrary::ERR_BAD_HANDLE;
-}
+//ErrCode VNALibrary::setOpenPhaseCorrection(TaskHandle t, const double* const phaseCorrections)
+//{
+//	if(d->p_setOpenPhaseCorrection)
+//		return d->p_setOpenPhaseCorrection(t, phaseCorrections);
+//	else return VNALibrary::ERR_BAD_HANDLE;
+//}
