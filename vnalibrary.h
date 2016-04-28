@@ -6,7 +6,12 @@
  * and exposes them to the caller.
 */
 
-#include "../../../vnadll/akela_vna_dll.h"
+#ifdef LINUX
+	#include "../../../vnadll/akela_vna_dll.h"
+#else
+	#include "../../../../dlls/vnadll/akela_vna_dll.h"
+#endif
+
 #include <QObject>
 #include <QString>
 #include "wrapperclasses.h"
@@ -45,6 +50,7 @@ class VNALibrary : public QObject
 		                            const QtComplexData ep03,		/* EXR */
 		                            const QtComplexData ep11,		/* ELR */
 		                            const QtComplexData ep23ep01	/* ETR */);
+		void clearCalibrationAsync(QtTaskHandle t);
 
 	signals:
 		void loadFinished(bool result);
@@ -57,6 +63,7 @@ class VNALibrary : public QObject
 		void measure2PortCalibratedFinished(QtErrCode result);
 		void measureCalibrationStepFinished(QtErrCode result);
 		void importCalibrationFinished(QtErrCode result);
+		void clearCalibrationFinished(QtErrCode result);
 
 
 	public:
@@ -87,6 +94,15 @@ class VNALibrary : public QObject
 		int ERR_SOCKET;
 		int ERR_TOO_MANY_POINTS;
 		int ERR_WRONG_STATE;
+
+		int ERR_EMPTY_PROM;
+		int ERR_FEATURE_NOT_PRESENT;
+		int ERR_NO_PATHS_MEASURED;
+		int ERR_PATH_ALREADY_MEASURED;
+		int ERR_UNKNOWN_FEATURE;
+		int ERR_WRONG_PROGRAM_TYPE;
+		int ERR_NO_ATTEN_PRESENT;
+		int ERR_BAD_PORT;
 
 		QString ErrToString(int code);
 
@@ -185,7 +201,7 @@ class VNALibrary : public QObject
 		HopRate getHopRate(TaskHandle t);
 		Attenuation getAttenuation(TaskHandle t);
 		unsigned int getNumberOfFrequencies(TaskHandle t);
-		const double* getFrequencies(TaskHandle t);
+		ErrCode getFrequencies(TaskHandle t, double* freqs, int fcnt);
 		HardwareDetails getHardwareDetails(TaskHandle t);
 		ErrCode utilNearestLegalFreq(TaskHandle t, double& freq);
 		ErrCode utilFixLinearSweepLimits(TaskHandle t, double& startFreq, double& endFreq, const unsigned int N);

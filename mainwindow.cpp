@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -163,10 +164,11 @@ void MainWindow::setupSignalsAndSlots()
 			&lib, SLOT(measureCalibrationStepAsync(QtTaskHandle, QtCalibrationStep)));
 	connect(this, SIGNAL(requestImportCalibrationAsync(QtTaskHandle,const double*,uint,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData)),
 			&lib, SLOT(importCalibrationAsync(QtTaskHandle,const double*,uint,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData,QtComplexData)));
+	connect(this, SIGNAL(requestClearCalibration(QtTaskHandle)), &lib, SLOT(clearCalibrationAsync(QtTaskHandle)));
 
 	// VNALibrary to MainWindow
 	connect(&lib, SIGNAL(loadFinished(bool)), this, SLOT(onLoadFinished(bool)));
-	//connect(&lib, SIGNAL(initializeProgress(int,Qtvoidptr)), this, SLOT(onInitializeProgress(int,Qtvoidptr)));
+	connect(&lib, SIGNAL(initializeProgress(int,Qtvoidptr)), this, SLOT(onInitializeProgress(int,Qtvoidptr)));
 	connect(&lib, SIGNAL(initializeFinished(QtErrCode)), this, SLOT(onInitializeFinished(QtErrCode)));
 	connect(&lib, SIGNAL(startFinished(QtErrCode)), this, SLOT(onStartFinished(QtErrCode)));
 	connect(&lib, SIGNAL(stopFinished(QtErrCode)), this, SLOT(onStopFinished(QtErrCode)));
@@ -175,6 +177,7 @@ void MainWindow::setupSignalsAndSlots()
 	connect(&lib, SIGNAL(measure2PortCalibratedFinished(QtErrCode)), this, SLOT(onMeasure2PortCalibratedFinished(QtErrCode)));
 	connect(&lib, SIGNAL(measureCalibrationStepFinished(QtErrCode)), this, SLOT(onMeasureCalibrationStepFinished(QtErrCode)));
 	connect(&lib, SIGNAL(importCalibrationFinished(QtErrCode)), this, SLOT(onImportCalibrationFinished(QtErrCode)));
+	connect(&lib, SIGNAL(clearCalibrationFinished(QtErrCode)), this, SLOT(onClearCalibrationFinished(QtErrCode)));
 
 	// Cal buttons
 	connect(ui->doP1Open,  SIGNAL(clicked(bool)), this, SLOT(onP1Open(bool)));
@@ -206,9 +209,9 @@ void MainWindow::onInitializeProgress(int percent, Qtvoidptr user)
 {
 	if(waitDialog != NULL)
 	{
-		std::cout << "calling waitDialog->setValue()" << std::endl;
+//		std::cout << "calling waitDialog->setValue()" << std::endl;
 		waitDialog->setValue(percent);
-		std::cout << "waitDialog->setValue() called" << std::endl;
+//		std::cout << "waitDialog->setValue() called" << std::endl;
 
 		if(percent == 100)
 		{
@@ -223,10 +226,26 @@ void MainWindow::onInitializeToggled(bool state)
 	if(state)
 	{
 		// From off to on
+		int ret;
 		QString ip = QString("192.168.1.") + QString::number(ui->ip->value());
-		lib.setIPAddress(task, ip.toStdString().c_str());
-		lib.setIPPort(task, ui->port->value());
-		lib.setTimeout(task, 150);
+		ret = lib.setIPAddress(task, ip.toStdString().c_str());
+		if (ret < 0)
+		{
+			std::cout << "Error setting IP Address: " << ret << std::endl;
+			return;
+		}
+		ret = lib.setIPPort(task, ui->port->value());
+		if (ret < 0)
+		{
+			std::cout << "Error setting network port: " << ret << std::endl;
+			return;
+		}
+		ret = lib.setTimeout(task, 150);
+		if (ret < 0)
+		{
+			std::cout << "Error setting timeout: " << ret << std::endl;
+			return;
+		}
 
 		waitDialog = new QProgressDialog("Retreiving hardware information...", "Cancel", 0, 100, this);
 		waitDialog->setWindowModality(Qt::WindowModal);
@@ -273,8 +292,9 @@ void MainWindow::onRunToggled(bool state)
 		if(hop == 5) rate = lib.HOP_2K;
 		lib.setHopRate(task, rate);
 
-		const double* freqs = lib.getFrequencies(task);
 		nPts = lib.getNumberOfFrequencies(task);
+		double* freqs = new double[nPts];
+		lib.getFrequencies(task, freqs, nPts);
 
 		releaseMemory();
 		allocateMemory(nPts);
@@ -297,7 +317,10 @@ void MainWindow::onRunToggled(bool state)
 
 void MainWindow::onClearCalibration(bool)
 {
-	lib.clearCalibration(task);
+	emit requestClearCalibration(QtTaskHandle(task));
+}
+void MainWindow::onClearCalibrationFinished(QtErrCode result)
+{
 	ui->p1OpenStatus->setChecked(false);
 	ui->p1ShortStatus->setChecked(false);
 	ui->p1LoadStatus->setChecked(false);
@@ -342,69 +365,75 @@ ComplexData wrapArray(ComplexArray a)
 
 void MainWindow::onSaveCalibration(bool)
 {
-	unsigned int N = lib.getCalibrationNumberOfFrequencies(task);
-	ComplexArray EDF(N);
-	ComplexArray ESF(N);
-	ComplexArray ERF(N);
-	ComplexArray EXF(N);
-	ComplexArray ELF(N);
-	ComplexArray ETF(N);
-	ComplexArray EDR(N);
-	ComplexArray ESR(N);
-	ComplexArray ERR(N);
-	ComplexArray EXR(N);
-	ComplexArray ELR(N);
-	ComplexArray ETR(N);
 
-	WRAP(EDF);
-	WRAP(ESF);
-	WRAP(ERF);
-	WRAP(EXF);
-	WRAP(ELF);
-	WRAP(ETF);
-	WRAP(EDR);
-	WRAP(ESR);
-	WRAP(ERR);
-	WRAP(EXR);
-	WRAP(ELR);
-	WRAP(ETR);
 
-	const double* freqs = lib.getCalibrationFrequencies(task);
-
-	ErrCode result = lib.exportCalibration(task,
-										   cdEDF, cdESF, cdERF,
-										   cdEXF, cdELF, cdETF,
-										   cdEDR, cdESR, cdERR,
-										   cdEXR, cdELR, cdETR);
-
-	// I need to zero these out, otherwise when the ComplexData's get
-	// deconstructed they try to delete the pointers too
-	UNWRAP(EDF);
-	UNWRAP(ESF);
-	UNWRAP(ERF);
-	UNWRAP(EXF);
-	UNWRAP(ELF);
-	UNWRAP(ETF);
-	UNWRAP(EDR);
-	UNWRAP(ESR);
-	UNWRAP(ERR);
-	UNWRAP(EXR);
-	UNWRAP(ELR);
-	UNWRAP(ETR);
-
-	if(result != lib.ERR_OK)
-	{
-		QString msg = QString("Unable to export calibration. Error code: "+lib.ErrToString(result));
-		statusBar()->showMessage(msg, 1000);
-	}
-	else
-	{
 		QString filename = QFileDialog::getSaveFileName(this,QString("Save Calibration File"),QString(""),QString("CSV Files (*.csv)"));
 		FILE* file = fopen(filename.toStdString().c_str(), "wt");
 		if(file)
 		{
+			unsigned int N = lib.getCalibrationNumberOfFrequencies(task);
+			ComplexArray EDF(N);
+			ComplexArray ESF(N);
+			ComplexArray ERF(N);
+			ComplexArray EXF(N);
+			ComplexArray ELF(N);
+			ComplexArray ETF(N);
+			ComplexArray EDR(N);
+			ComplexArray ESR(N);
+			ComplexArray ERR(N);
+			ComplexArray EXR(N);
+			ComplexArray ELR(N);
+			ComplexArray ETR(N);
+
+			WRAP(EDF);
+			WRAP(ESF);
+			WRAP(ERF);
+			WRAP(EXF);
+			WRAP(ELF);
+			WRAP(ETF);
+			WRAP(EDR);
+			WRAP(ESR);
+			WRAP(ERR);
+			WRAP(EXR);
+			WRAP(ELR);
+			WRAP(ETR);
+
+
+			ErrCode result = lib.exportCalibration(task,
+												   cdEDF, cdESF, cdERF,
+												   cdEXF, cdELF, cdETF,
+												   cdEDR, cdESR, cdERR,
+												   cdEXR, cdELR, cdETR);
+
+			// I need to zero these out, otherwise when the ComplexData's get
+			// deconstructed they try to delete the pointers too
+			UNWRAP(EDF);
+			UNWRAP(ESF);
+			UNWRAP(ERF);
+			UNWRAP(EXF);
+			UNWRAP(ELF);
+			UNWRAP(ETF);
+			UNWRAP(EDR);
+			UNWRAP(ESR);
+			UNWRAP(ERR);
+			UNWRAP(EXR);
+			UNWRAP(ELR);
+			UNWRAP(ETR);
+
+			const double* freqs = lib.getCalibrationFrequencies(task);
+
+			if(result != lib.ERR_OK)
+			{
+				QString msg = QString("Unable to export calibration. Error code: "+lib.ErrToString(result));
+				statusBar()->showMessage(msg, 1000);
+			}
+			else
+			{
 			fprintf(file, "Freq,EDFi,EDFq,ESFi,ESFq,ERFi,ERFq,EXFi,EXFq,ELFi,ELFq,ETFi,ETFq,EDRi,EDRq,ESRi,ESRq,ERRi,ERRq,EXRi,EXRq,ELRi,ELRq,ETRi,ETRq\n");
 			for(unsigned int i=0; i<N; ++i)
+			{
+				std::cout << "Freq value: " << freqs[i] << "." << std::endl;
+				assert(std::abs(freqs[i]) > 370);
 				fprintf(file,"%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f\n",
 						freqs[i],
 						EDF.Idata[i], EDF.Qdata[i],
@@ -420,6 +449,7 @@ void MainWindow::onSaveCalibration(bool)
 						ELR.Idata[i], ELR.Qdata[i],
 						ETR.Idata[i], ETR.Qdata[i]
 					);
+			}
 			fclose(file);
 			statusBar()->showMessage(QString("Wrote ")+filename, 1000);
 		}
@@ -577,7 +607,12 @@ void MainWindow::onLoadFinished(bool result)
 {
 	if(result)
 	{
-		this->statusBar()->showMessage(QString(lib.versionString()), 10000);
+		std::string version = "OpenVNA v"
+			#include "VERSION.txt"
+			", ";
+		version = version + lib.versionString();
+		QLabel* sbar_fixed_text = new QLabel(QString::fromStdString(version));
+		this->statusBar()->addPermanentWidget(sbar_fixed_text);
 		task = lib.createTask();
 	}
 	else

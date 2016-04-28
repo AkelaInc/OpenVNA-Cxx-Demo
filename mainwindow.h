@@ -84,6 +84,7 @@ class MainWindow : public QMainWindow
 		                                   const QtComplexData ep03,		/* EXR */
 		                                   const QtComplexData ep11,		/* ELR */
 		                                   const QtComplexData ep23ep01	/* ETR */);
+		void requestClearCalibration(QtTaskHandle t);
 
 	private slots:
 		void onLoadFinished(bool result);
@@ -96,6 +97,7 @@ class MainWindow : public QMainWindow
 		void onMeasure2PortCalibratedFinished(QtErrCode result);
 		void onMeasureCalibrationStepFinished(QtErrCode result);
 		void onImportCalibrationFinished(QtErrCode result);
+		void onClearCalibrationFinished(QtErrCode result);
 
 		void onInitializeToggled(bool state);
 		void onRunToggled(bool state);

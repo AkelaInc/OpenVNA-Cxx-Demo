@@ -1,3 +1,4 @@
+
 #include <QDebug>
 #include <QLibrary>
 #include <QTime>
@@ -25,7 +26,7 @@ typedef int (*getIPPortProto)(TaskHandle t);
 typedef HopRate (*getHopRateProto)(TaskHandle t);
 typedef Attenuation (*getAttenuationProto)(TaskHandle t);
 typedef unsigned int (*getNumberOfFrequenciesProto)(TaskHandle t);
-typedef const double* (*getFrequenciesProto)(TaskHandle t);
+typedef ErrCode (*getFrequenciesProto)(TaskHandle t, double* freqs, int fcnt);
 typedef HardwareDetails (*getHardwareDetailsProto)(TaskHandle t);
 typedef ErrCode (*utilNearestLegalFreqProto)(TaskHandle t, double& freq);
 typedef ErrCode (*utilFixLinearSweepLimitsProto)(TaskHandle t, double& startFreq, double& endFreq, const unsigned int N);
@@ -105,6 +106,15 @@ class PrivateData
 		intProto p_ERR_SOCKET;
 		intProto p_ERR_TOO_MANY_POINTS;
 		intProto p_ERR_WRONG_STATE;
+		intProto ERR_BAD_HANDLE;
+		intProto p_ERR_EMPTY_PROM;
+		intProto p_ERR_FEATURE_NOT_PRESENT;
+		intProto p_ERR_NO_PATHS_MEASURED;
+		intProto p_ERR_PATH_ALREADY_MEASURED;
+		intProto p_ERR_UNKNOWN_FEATURE;
+		intProto p_ERR_WRONG_PROGRAM_TYPE;
+		intProto p_ERR_NO_ATTEN_PRESENT;
+		intProto p_ERR_BAD_PORT;
 
 		intProto p_HOP_UNDEFINED;
 		intProto p_HOP_45K;
@@ -339,6 +349,11 @@ void VNALibrary::importCalibrationAsync(QtTaskHandle t, const double* freqs, con
 	emit importCalibrationFinished(QtErrCode(result));
 }
 
+void VNALibrary::clearCalibrationAsync(QtTaskHandle t)
+{
+	ErrCode result = clearCalibration(t.val);
+	emit clearCalibrationFinished(QtErrCode(result));
+}
 
 VNALibrary::VNALibrary()
 {
@@ -401,6 +416,13 @@ bool VNALibrary::load(QString path)
 	GET_INT(ERR_SOCKET);
 	GET_INT(ERR_TOO_MANY_POINTS);
 	GET_INT(ERR_WRONG_STATE);
+	GET_INT(ERR_EMPTY_PROM);
+	GET_INT(ERR_FEATURE_NOT_PRESENT);
+	GET_INT(ERR_NO_PATHS_MEASURED);
+	GET_INT(ERR_PATH_ALREADY_MEASURED);
+	GET_INT(ERR_UNKNOWN_FEATURE);
+	GET_INT(ERR_WRONG_PROGRAM_TYPE);
+	GET_INT(ERR_NO_ATTEN_PRESENT);
 
 	GET_INT(HOP_UNDEFINED);
 	GET_INT(HOP_45K);
@@ -522,51 +544,51 @@ bool VNALibrary::load(QString path)
 
 	d->loaded = true;
 
-	d->ok = d->p_versionString
-			&& d->p_createTask
-			&& d->p_deleteTask
-			&& d->p_initialize
-			&& d->p_start
-			&& d->p_stop
-			&& d->p_setIPAddress
-			&& d->p_setIPPort
-			&& d->p_setTimeout
-			&& d->p_setHopRate
-			&& d->p_setAttenuation
-			&& d->p_setFrequencies
-			&& d->p_getState
-			&& d->p_getTimeout
-			&& d->p_getIPAddress
-			&& d->p_getIPPort
-			&& d->p_getHopRate
-			&& d->p_getAttenuation
-			&& d->p_getNumberOfFrequencies
-			&& d->p_getFrequencies
-			&& d->p_getHardwareDetails
-			&& d->p_utilNearestLegalFreq
-			&& d->p_utilFixLinearSweepLimits
-			&& d->p_utilPingUnit
-			&& d->p_utilGenerateLinearSweep
-			&& d->p_measureUncalibrated
-			&& d->p_measure2PortCalibrated
-			&& d->p_measureCalibrationStep
-			&& d->p_haveCalP1Open
-			&& d->p_haveCalP1Short
-			&& d->p_haveCalP1Load
-			&& d->p_haveCalP2Open
-			&& d->p_haveCalP2Short
-			&& d->p_haveCalP2Load
-			&& d->p_haveCalThru
-			&& d->p_interruptMeasurement
-			&& d->p_clearCalibration
-			&& d->p_isCalibrationComplete
-			&& d->p_getCalibrationNumberOfFrequencies
-			&& d->p_getCalibrationFrequencies
-			&& d->p_exportCalibration
-			&& d->p_importCalibration
-			&& d->p_hasFactoryCalibration
-			&& d->p_importFactoryCalibration;
-//			&& d->p_setOpenPhaseCorrection;
+	d->ok = d->p_versionString                         != NULL
+			&& d->p_createTask                         != NULL
+			&& d->p_deleteTask                         != NULL
+			&& d->p_initialize                         != NULL
+			&& d->p_start                              != NULL
+			&& d->p_stop                               != NULL
+			&& d->p_setIPAddress                       != NULL
+			&& d->p_setIPPort                          != NULL
+			&& d->p_setTimeout                         != NULL
+			&& d->p_setHopRate                         != NULL
+			&& d->p_setAttenuation                     != NULL
+			&& d->p_setFrequencies                     != NULL
+			&& d->p_getState                           != NULL
+			&& d->p_getTimeout                         != NULL
+			&& d->p_getIPAddress                       != NULL
+			&& d->p_getIPPort                          != NULL
+			&& d->p_getHopRate                         != NULL
+			&& d->p_getAttenuation                     != NULL
+			&& d->p_getNumberOfFrequencies             != NULL
+			&& d->p_getFrequencies                     != NULL
+			&& d->p_getHardwareDetails                 != NULL
+			&& d->p_utilNearestLegalFreq               != NULL
+			&& d->p_utilFixLinearSweepLimits           != NULL
+			&& d->p_utilPingUnit                       != NULL
+			&& d->p_utilGenerateLinearSweep            != NULL
+			&& d->p_measureUncalibrated                != NULL
+			&& d->p_measure2PortCalibrated             != NULL
+			&& d->p_measureCalibrationStep             != NULL
+			&& d->p_haveCalP1Open                      != NULL
+			&& d->p_haveCalP1Short                     != NULL
+			&& d->p_haveCalP1Load                      != NULL
+			&& d->p_haveCalP2Open                      != NULL
+			&& d->p_haveCalP2Short                     != NULL
+			&& d->p_haveCalP2Load                      != NULL
+			&& d->p_haveCalThru                        != NULL
+			&& d->p_interruptMeasurement               != NULL
+			&& d->p_clearCalibration                   != NULL
+			&& d->p_isCalibrationComplete              != NULL
+			&& d->p_getCalibrationNumberOfFrequencies  != NULL
+			&& d->p_getCalibrationFrequencies          != NULL
+			&& d->p_exportCalibration                  != NULL
+			&& d->p_importCalibration                  != NULL
+			&& d->p_hasFactoryCalibration              != NULL
+			&& d->p_importFactoryCalibration           != NULL;
+			// && d->p_setOpenPhaseCorrection;
 
 	return d->ok;
 }
@@ -586,26 +608,35 @@ bool VNALibrary::isOK()
 QString VNALibrary::ErrToString(int code)
 {
 	QString out = "UNKNOWN";
-	if(code == VNALibrary::ERR_OK) out = "ERR_OK";
-	if(code == VNALibrary::ERR_BAD_ATTEN) out = "ERR_BAD_ATTEN";
-	if(code == VNALibrary::ERR_BAD_CAL) out = "ERR_BAD_CAL";
-	if(code == VNALibrary::ERR_BAD_HANDLE) out = "ERR_BAD_HANDLE";
-	if(code == VNALibrary::ERR_BAD_HOP) out = "ERR_BAD_HOP";
-	if(code == VNALibrary::ERR_BAD_PATH) out = "ERR_BAD_PATH";
-	if(code == VNALibrary::ERR_BAD_PROM) out = "ERR_BAD_PROM";
-	if(code == VNALibrary::ERR_BYTES) out = "ERR_BYTES";
-	if(code == VNALibrary::ERR_FREQ_OUT_OF_BOUNDS) out = "ERR_FREQ_OUT_OF_BOUNDS";
-	if(code == VNALibrary::ERR_INTERRUPTED) out = "ERR_INTERRUPTED";
-	if(code == VNALibrary::ERR_NO_RESPONSE) out = "ERR_NO_RESPONSE";
-	if(code == VNALibrary::ERR_MISSING_IP) out = "ERR_MISSING_IP";
-	if(code == VNALibrary::ERR_MISSING_PORT) out = "ERR_MISSING_PORT";
-	if(code == VNALibrary::ERR_MISSING_HOP) out = "ERR_MISSING_HOP";
-	if(code == VNALibrary::ERR_MISSING_ATTEN) out = "ERR_MISSING_ATTEN";
-	if(code == VNALibrary::ERR_MISSING_FREQS) out = "ERR_MISSING_FREQS";
-	if(code == VNALibrary::ERR_PROG_OVERFLOW) out = "ERR_PROG_OVERFLOW";
-	if(code == VNALibrary::ERR_SOCKET) out = "ERR_SOCKET";
-	if(code == VNALibrary::ERR_TOO_MANY_POINTS) out = "ERR_TOO_MANY_POINTS";
-	if(code == VNALibrary::ERR_WRONG_STATE) out = "ERR_WRONG_STATE";
+	if (code == VNALibrary::ERR_OK)                    out = "ERR_OK";
+	if (code == VNALibrary::ERR_BAD_ATTEN)             out = "ERR_BAD_ATTEN";
+	if (code == VNALibrary::ERR_BAD_CAL)               out = "ERR_BAD_CAL";
+	if (code == VNALibrary::ERR_BAD_HANDLE)            out = "ERR_BAD_HANDLE";
+	if (code == VNALibrary::ERR_BAD_HOP)               out = "ERR_BAD_HOP";
+	if (code == VNALibrary::ERR_BAD_PATH)              out = "ERR_BAD_PATH";
+	if (code == VNALibrary::ERR_BAD_PROM)              out = "ERR_BAD_PROM";
+	if (code == VNALibrary::ERR_BYTES)                 out = "ERR_BYTES";
+	if (code == VNALibrary::ERR_FREQ_OUT_OF_BOUNDS)    out = "ERR_FREQ_OUT_OF_BOUNDS";
+	if (code == VNALibrary::ERR_INTERRUPTED)           out = "ERR_INTERRUPTED";
+	if (code == VNALibrary::ERR_NO_RESPONSE)           out = "ERR_NO_RESPONSE";
+	if (code == VNALibrary::ERR_MISSING_IP)            out = "ERR_MISSING_IP";
+	if (code == VNALibrary::ERR_MISSING_PORT)          out = "ERR_MISSING_PORT";
+	if (code == VNALibrary::ERR_MISSING_HOP)           out = "ERR_MISSING_HOP";
+	if (code == VNALibrary::ERR_MISSING_ATTEN)         out = "ERR_MISSING_ATTEN";
+	if (code == VNALibrary::ERR_MISSING_FREQS)         out = "ERR_MISSING_FREQS";
+	if (code == VNALibrary::ERR_PROG_OVERFLOW)         out = "ERR_PROG_OVERFLOW";
+	if (code == VNALibrary::ERR_SOCKET)                out = "ERR_SOCKET";
+	if (code == VNALibrary::ERR_TOO_MANY_POINTS)       out = "ERR_TOO_MANY_POINTS";
+	if (code == VNALibrary::ERR_WRONG_STATE)           out = "ERR_WRONG_STATE";
+
+	if (code == VNALibrary::ERR_EMPTY_PROM)            out = "ERR_EMPTY_PROM";
+	if (code == VNALibrary::ERR_FEATURE_NOT_PRESENT)   out = "ERR_FEATURE_NOT_PRESENT";
+	if (code == VNALibrary::ERR_NO_PATHS_MEASURED)     out = "ERR_NO_PATHS_MEASURED";
+	if (code == VNALibrary::ERR_PATH_ALREADY_MEASURED) out = "ERR_PATH_ALREADY_MEASURED";
+	if (code == VNALibrary::ERR_UNKNOWN_FEATURE)       out = "ERR_UNKNOWN_FEATURE";
+	if (code == VNALibrary::ERR_WRONG_PROGRAM_TYPE)    out = "ERR_WRONG_PROGRAM_TYPE";
+	if (code == VNALibrary::ERR_NO_ATTEN_PRESENT)      out = "ERR_NO_ATTEN_PRESENT";
+	if (code == VNALibrary::ERR_BAD_PORT)              out = "ERR_BAD_PORT";
 	return out;
 }
 
@@ -740,10 +771,10 @@ unsigned int VNALibrary::getNumberOfFrequencies(TaskHandle t)
 	else return 0;
 }
 
-const double *VNALibrary::getFrequencies(TaskHandle t)
+ErrCode VNALibrary::getFrequencies(TaskHandle t, double* freqs, int nfreqs)
 {
 	if(d->p_getFrequencies)
-		return d->p_getFrequencies(t);
+		return d->p_getFrequencies(t, freqs, nfreqs);
 	else return 0;
 }
 

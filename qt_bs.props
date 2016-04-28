@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <QTDIR_32>C:\Qt\5.5\msvc2013</QTDIR_32>
+    <QTDIR_64>C:\Qt\5.5\msvc2013_64</QTDIR_64>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+    <BuildMacro Include="QTDIR_32">
+      <Value>$(QTDIR_32)</Value>
+    </BuildMacro>
+    <BuildMacro Include="QTDIR_64">
+      <Value>$(QTDIR_64)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
